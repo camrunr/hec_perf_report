@@ -14,12 +14,5 @@ HEC stats shown in this report:
       if test -d $SPLUNK_DIR
       then
        date +"%F %T %z"
-       echo -n "HOST=`hostname` pq_size="
+       echo -n "pq_size="
        du -sm $SPLUNK_DIR | egrep -o "[0-9]*"
-       echo tokens over 10MB of queue:
-    
-       for F in `find $SPLUNK_DIR -type f -size +10M`
-       do
-          du -sh $F | sed -e "s^$SPLUNK_DIR/^^"
-       done
-      fi
