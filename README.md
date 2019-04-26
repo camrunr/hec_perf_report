@@ -16,3 +16,4 @@ HEC stats shown in this report:
        date +"%F %T %z"
        echo -n "pq_size="
        du -sm $SPLUNK_DIR | egrep -o "[0-9]*"
+      fi
