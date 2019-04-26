@@ -163,7 +163,7 @@
 | eval reqs_per_sec=reqs/300, bytes_per_post=Bytes/reqs 
 | rename data.token_name as token_name
 | stats sum(eval(Bytes/1024/1024)) as MBytes sum(events) as Events p50(events_per_POST) as events_per_post p50(bytes_per_post) as bytes_per_post p90(reqs_per_sec) as posts_per_sec by token_name
-| `round_fields(0)` | sort - posts_per_sec</query>
+| sort - posts_per_sec</query>
           <earliest>$timepicker.earliest$</earliest>
           <latest>$timepicker.latest$</latest>
         </search>
