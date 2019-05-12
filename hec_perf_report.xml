@@ -22,13 +22,12 @@
       <label>Env</label>
       <choice value="tag=env1">ENV1</choice>
       <choice value="tag=env2">ENV2</choice>
-      <default></default>
     </input>
     <input type="time" token="timepicker">
       <label></label>
       <default>
-        <earliest>-4h@m</earliest>
-        <latest>@m</latest>
+        <earliest>-15@m</earliest>
+        <latest>now</latest>
       </default>
     </input>
     <input type="dropdown" token="dd_span">
@@ -39,6 +38,57 @@
       <default>1min</default>
     </input>
   </fieldset>
+  <row>
+    <panel>
+      <title>Server Status</title>
+      <table>
+        <search>
+          <query>| rest splunk_server_group=dmc_customgroup_hec /services/server/health/splunkd/details
+| rename "features.Data Forwarding.health" as "Fwdr Health", 
+         "features.File Monitor Input.health" as "Queue Health",
+         health as "Overall Health",
+         splunk_server as "HEC Server"
+| fields "HEC Server" "Overall Health" "Fwdr Health" "Queue Health"
+| sort "HEC Server"
+| foreach * [eval "&lt;&lt;FIELD&gt;&gt;"=replace('&lt;&lt;FIELD&gt;&gt;',"green","✅")]
+| foreach * [eval "&lt;&lt;FIELD&gt;&gt;"=replace('&lt;&lt;FIELD&gt;&gt;',"red","❌")]</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <format type="color" field="S2S_Fwd_Health">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="Fwd_Health">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>Q size, MB</title>
+      <chart>
+        <search>
+          <query>index=main sourcetype=pq_size $dd_env$
+| eval pq_size=if(pq_size&lt;2,0,pq_size)
+| timechart limit=20 span=$dd_span$ max(pq_size) as MB by host</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
   <row>
     <panel>
       <title>Events/sec, by host</title>
@@ -163,7 +213,7 @@
 | eval reqs_per_sec=reqs/300, bytes_per_post=Bytes/reqs 
 | rename data.token_name as token_name
 | stats sum(eval(Bytes/1024/1024)) as MBytes sum(events) as Events p50(events_per_POST) as events_per_post p50(bytes_per_post) as bytes_per_post p90(reqs_per_sec) as posts_per_sec by token_name
-| sort - posts_per_sec</query>
+| `round_fields(0)` | sort - posts_per_sec</query>
           <earliest>$timepicker.earliest$</earliest>
           <latest>$timepicker.latest$</latest>
         </search>
@@ -179,24 +229,6 @@
           <scale type="threshold">10,50</scale>
         </format>
       </table>
-    </panel>
-    <panel>
-      <title>Q size, MB</title>
-      <chart>
-        <search>
-          <query>index=main sourcetype=pq_size $dd_env$
-| eval pq_size=if(pq_size&lt;2,0,pq_size)
-| timechart limit=20 span=$dd_span$ max(pq_size) as MB by host</query>
-          <earliest>$timepicker.earliest$</earliest>
-          <latest>$timepicker.latest$</latest>
-        </search>
-        <option name="charting.axisTitleX.visibility">collapsed</option>
-        <option name="charting.axisY.abbreviation">none</option>
-        <option name="charting.chart">column</option>
-        <option name="charting.chart.stackMode">stacked</option>
-        <option name="charting.drilldown">none</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
     </panel>
   </row>
 </form>
