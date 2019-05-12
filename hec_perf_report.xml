@@ -1,4 +1,7 @@
 <form refresh="300" theme="dark">
+  <init>
+    <set token="hc_host_match">host=*hec*</set>
+  </init>
   <label>HEC Performance</label>
   <search id="by_token">
     <query>index=_introspection $dd_env$ source=*event_collect* http_event_collector_token
@@ -9,7 +12,7 @@
     <sampleRatio>1</sampleRatio>
   </search>
   <search id="by_host">
-    <query>index=_introspection $dd_env$ source=*event_collect* http_event_collector_token
+    <query>index=_introspection $hc_host_match$ $dd_env$ source=*event_collect* http_event_collector_token
 | bucket _time span=$dd_span$
 | stats sum(data.num_of_events) as Events sum(data.total_bytes_received) as Bytes by _time host
 | eval host=replace(host,"-.*","")</query>
@@ -22,6 +25,7 @@
       <label>Env</label>
       <choice value="splunk_server_group=dmc_customgroup_ENV1">ENV1</choice>
       <choice value="splunk_server_group=dmc_customgroup_ENV2">ENV2</choice>
+      <default>splunk_server_group=dmc_customgroup_ENV1</default>
     </input>
     <input type="time" token="timepicker">
       <label></label>
@@ -74,7 +78,7 @@
       <title>Q size, MB</title>
       <chart>
         <search>
-          <query>index=main sourcetype=pq_size $dd_env$
+          <query>index=main sourcetype=pq_size $hc_host_match$ $dd_env$
 | eval pq_size=if(pq_size&lt;2,0,pq_size)
 | timechart limit=20 span=$dd_span$ max(pq_size) as MB by host</query>
           <earliest>$timepicker.earliest$</earliest>
@@ -206,7 +210,7 @@
       <title>HEC Batching Efficiency</title>
       <table>
         <search>
-          <query>index=_introspection $dd_env$ source=*event_collect* http_event_collector_token 
+          <query>index=_introspection $hc_host_match$ $dd_env$ source=*event_collect* http_event_collector_token 
 | eval EpR='data.num_of_events'/'data.num_of_requests'
 | bucket _time span=5m
 | stats sum(data.num_of_events) as events avg(EpR) as events_per_POST sum(data.num_of_requests) as reqs sum(data.total_bytes_received) as Bytes by _time data.token_name
