@@ -20,17 +20,8 @@
   <fieldset submitButton="false">
     <input type="dropdown" token="dd_env">
       <label>Env</label>
-      <choice value="tag=env1">ENV1</choice>
-      <choice value="tag=env2">ENV2</choice>
-      <change>
-        <condition label="ENV1">
-          <set token="dd_env_hec_match">splunk_server_group=dmc_customgroup_ENV1</set>
-        </condition>
-        <condition label="ENV2">
-          <set token="dd_env_hec_match">splunk_server_group=dmc_customgroup_ENV2</set>
-        </condition>
-      </change>
-
+      <choice value="splunk_server_group=dmc_customgroup_ENV1">ENV1</choice>
+      <choice value="splunk_server_group=dmc_customgroup_ENV2">ENV2</choice>
     </input>
     <input type="time" token="timepicker">
       <label></label>
@@ -52,7 +43,7 @@
       <title>Server Status</title>
       <table>
         <search>
-          <query>| rest $dd_env_hec_match$ splunk_server_group=dmc_customgroup_hec /services/server/health/splunkd/details
+          <query>| rest splunk_server_group=dmc_customgroup_hec $dd_env$ /services/server/health/splunkd/details
 | rename "features.Data Forwarding.health" as "Fwdr Health", 
          "features.File Monitor Input.health" as "Queue Health",
          health as "Overall Health",
