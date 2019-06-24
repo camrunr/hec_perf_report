@@ -8,6 +8,8 @@ HEC stats shown in this report:
 * Bytes/sec by receiving host and input definition
 * HEC batching efficiency showing events and volume per post, and posts/sec
 
+Reqs:
+
 * Assumes you are installing on your MC
 * You will need a custom group defined on your MC: hec (used as dmc_customgroup_hec)
 * You will need to modify the env selection dropdown to fit your environment.
